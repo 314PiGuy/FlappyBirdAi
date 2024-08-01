@@ -10,3 +10,12 @@ QBird::QBird(double l, double d, double e){
     discount = d;
     explore = e;
 }
+
+int QBird::nextAction(int x, int y){
+    if ((rand() % 11)/10.0 > explore){
+        return rand() % 2;
+    }
+    auto e = table[y][x];
+    if (e[1] > e[0]) return 1;
+    return 0;
+}

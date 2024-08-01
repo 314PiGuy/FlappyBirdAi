@@ -12,6 +12,7 @@ int cooldown = 0;
 Bird bird = Bird(10); //bird class should have a flap and move method and takes the hitbox length in constructor
 vector<Pipe> pipes; //pipe class represents the pipe obstacle and there will be a vector of the pipes on screen. the pipes should have a move method to move them on the screen
 int score = 0;
+QBird qbird = QBird(0.1, 0.9, 0.8);
 
 int spawnPipeCountdown = 0; // use this to time when to add a new pipe
 int nextPipe = 0; //index of the pipe in front of the bird
@@ -82,10 +83,40 @@ void reset(){
     score = 0
 }
 
+void train(QBird& qbird){
+    int flaps = 0;
+    int action;
+    int state0[2];
+    int state1[2];
+    Pipe next;
+    while (flaps < 1000){
+        if (spawnPipeCountdown == 0){
+            pipes.push_back(Pipe());
+            spawnPipeCountdown = 112;
+        }
+        if (cooldown > 0){
+            move();
+        }
+        else{
+            //get the integer values of position difference
+            flaps++;
+            next = pipes[nextPipe];
+            state0[0] = int(next.x-birdup.pos[0]);
+            state0[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
+            if (birdDown()) reward = -1000; //idk what values would yield what best results 
+            else reward = 15;
+            //need to use the learning algorithm
+        }
+    }
+    reset();
+}
+
 
 int main(){
 
     srand(time(0));
+
+    train(qbird);
     
     RenderWindow window(VideoMode(250, 200), "Bird Up");
 
