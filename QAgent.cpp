@@ -12,10 +12,18 @@ QBird::QBird(double l, double d, double e){
 }
 
 int QBird::nextAction(int x, int y){
-    if ((rand() % 11)/10.0 > explore){
+    //this breaks it somehow?
+    // if ((rand() % 11)/10.0 > explore){
+    //     return rand() % 2;
+    // }
+
+    if (rand() > int(explore*32767)){
         return rand() % 2;
     }
+
     auto e = table[y][x];
+    //something should be done to account for bird velocity to make the ai way better
+    //perhaps some interpolation of the difference between the 2 actions idk
     if (e[1] > e[0]) return 1;
     return 0;
 }
