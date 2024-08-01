@@ -89,6 +89,7 @@ void train(QBird& qbird){
     int state0[2];
     int state1[2];
     Pipe next;
+    int reward;
     while (flaps < 1000){
         if (spawnPipeCountdown == 0){
             pipes.push_back(Pipe());
@@ -103,9 +104,18 @@ void train(QBird& qbird){
             next = pipes[nextPipe];
             state0[0] = int(next.x-birdup.pos[0]);
             state0[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
+            action = qbird.nextAction(state0[0], state0[1], birdup.vy);
+            if (action == 1){
+                birdup.flap();
+                cooldown = 30;
+            }
+            move();
+            state1[0] = int(next.x-birdup.pos[0]);
+            state1[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
             if (birdDown()) reward = -1000; //idk what values would yield what best results 
             else reward = 15;
-            //need to use the learning algorithm
+            qbird.learn(state0, state1, reward, action);
+            if (reward == -1000) reset();
         }
     }
     reset();

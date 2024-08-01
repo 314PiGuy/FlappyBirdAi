@@ -19,3 +19,8 @@ int QBird::nextAction(int x, int y){
     if (e[1] > e[0]) return 1;
     return 0;
 }
+
+void QBird::learn(int prev[2], int cur[2], int reward, int a){
+    double dif = reward + (*max_element(table[cur[1]][cur[0]].begin(), table[cur[1]][cur[0]].end())*discount) - table[prev[1]][prev[0]][a];
+    table[prev[1]][prev[0]][a] += dif * learnrate;
+}
