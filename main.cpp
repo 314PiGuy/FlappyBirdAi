@@ -2,6 +2,7 @@
 #include <vector>
 #include "bird.hpp"
 #include "pipe.hpp"
+#include "QAgent.hpp"
 
 
 using namespace std;
@@ -10,10 +11,22 @@ using namespace sf;
 int cooldown = 0;
 Bird bird = Bird(10); //bird class should have a flap and move method and takes the hitbox length in constructor
 vector<Pipe> pipes; //pipe class represents the pipe obstacle and there will be a vector of the pipes on screen. the pipes should have a move method to move them on the screen
+int score = 0;
 
 int spawnPipeCountdown = 0; // use this to time when to add a new pipe
 int nextPipe = 0; //index of the pipe in front of the bird
 
+bool birdDown(){
+    //check collisions with pipe hitboxes and top/bottom
+    if (bird.pos[1] < 0 || bird.pos[1]+bird.size > 200) return true;
+    Pipe p = pipes[nextPipe];
+    if ( (bird.pos[0] > p.x && bird.pos[0] < p.x+p.width) || (bird.pos[0]+bird.size > p.x && bird.pos[0]+bird.size < p.x+p.width) ){
+        if (bird.pos[1] < p.y[0] || bird.pos[1] + bird.size > p.y[1]){ 
+            return true; 
+        }
+    }
+    return false;
+}
 
 
 vector<RectangleShape> createScene(){
@@ -48,8 +61,9 @@ void move(){
     bird.move();
     spawnPipeCountdown--;
     if (pipes[nextPipe].x+pipes[nextPipe].width < bird.pos[0]){
-        //the next pipe is the next pipe when it passes the bird
+        //the next pipe is the pipe after it when it passes the bird
         nextPipe++;
+        score++;
     }
     if (pipes[0].x+pipes[0].width < 0){
         //remove pipes when they go off scree
@@ -57,6 +71,15 @@ void move(){
         pipes.erase(pipes.begin());
     }
     if (cooldown > 0) cooldown--;
+}
+
+void reset(){
+    pipes.clear();
+    spawnPipeCountdown = 0;
+    cooldown = 0;
+    bird.reset();
+    cout << "Score: " << score << "\n";
+    score = 0
 }
 
 
@@ -88,13 +111,15 @@ int main(){
         }
 
         //this makes a pipe every 112 pixels idk why 112 it looks right i suppose
-        if (spawnPipeCountDown == 0){
-            poles.push_back(Pole());
-            spawnPipeCountDown = 112;
+        if (spawnPipeCountdown == 0){
+            pipes.push_back(Pipe());
+            spawnPipeCountdown = 112;
         }
 
         move();
-
+        if (birdDown()){
+            reset();
+        }
 
         window.clear();
 
