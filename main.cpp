@@ -107,7 +107,7 @@ void train(QBird& qbird){
             action = qbird.nextAction(state0[0], state0[1], birdup.vy);
             if (action == 1){
                 birdup.flap();
-                cooldown = 30;
+                cooldown = 20;
             }
             move();
             state1[0] = int(next.x-birdup.pos[0]);
@@ -145,10 +145,22 @@ int main(){
             }
         }
 
-        //flap when space pressed at maximum once every 30 cycles
+        //flap when space pressed at maximum once every 20 cycles
         if (Keyboard::isKeyPressed(Keyboard::Space) && cooldown == 0){
             bird.flap();
-            cooldown = 30;
+            cooldown = 20;
+        }
+
+        //agent does the flapping
+        if (cooldown == 0){
+            Pole next = poles[nextPole];
+            int state0[2];
+            state0[0] = int(next.x-birdup.pos[0]);
+            state0[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
+            if (qbird.nextAction(state0[0], state0[1], birdup.vy) == 1){
+                birdup.flap();
+                cooldown = 20;
+            }
         }
 
         //this makes a pipe every 112 pixels idk why 112 it looks right i suppose
