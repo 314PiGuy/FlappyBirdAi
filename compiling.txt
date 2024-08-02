@@ -1,0 +1,2 @@
+compiling with g++(optimization 3 is optional):
+g++ *.cpp -lsfml-graphics -lsfml-window -lsfml-system -O3

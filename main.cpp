@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <vector>
 #include "bird.hpp"
 #include "pipe.hpp"
@@ -12,7 +13,6 @@ int cooldown = 0;
 Bird bird = Bird(10); //bird class should have a flap and move method and takes the hitbox length in constructor
 vector<Pipe> pipes; //pipe class represents the pipe obstacle and there will be a vector of the pipes on screen. the pipes should have a move method to move them on the screen
 int score = 0;
-QBird qbird = QBird(0.1, 0.9, 0.8);
 
 int spawnPipeCountdown = 0; // use this to time when to add a new pipe
 int nextPipe = 0; //index of the pipe in front of the bird
@@ -32,10 +32,10 @@ bool birdDown(){
 
 vector<RectangleShape> createScene(){
     vector<RectangleShape> rects;
-    RectangleShape bird(Vector2f(bird.size, bird.size));
-    bird.setPosition(Vector2f(bird.pos[0], bird.pos[1]));
-    bird.setFillColor(Color::Yellow);
-    rects.push_back(bird);
+    RectangleShape b(Vector2f(bird.size, bird.size));
+    b.setPosition(Vector2f(bird.pos[0], bird.pos[1]));
+    b.setFillColor(Color::Yellow);
+    rects.push_back(b);
     //a rectangle to represent the bird
 
     int n = 0;
@@ -79,18 +79,17 @@ void reset(){
     spawnPipeCountdown = 0;
     cooldown = 0;
     bird.reset();
-    cout << "Score: " << score << "\n";
-    score = 0
+    score = 0;
 }
 
 void train(QBird& qbird){
     int flaps = 0;
     int action;
-    int state0[2];
-    int state1[2];
+    int state0[3];
+    int state1[3];
     Pipe next;
     int reward;
-    while (flaps < 1000){
+    while (flaps < 10000){
         if (spawnPipeCountdown == 0){
             pipes.push_back(Pipe());
             spawnPipeCountdown = 112;
@@ -102,16 +101,18 @@ void train(QBird& qbird){
             //get the integer values of position difference
             flaps++;
             next = pipes[nextPipe];
-            state0[0] = int(next.x-birdup.pos[0]);
-            state0[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
-            action = qbird.nextAction(state0[0], state0[1], birdup.vy);
+            state0[0] = int(next.x-bird.pos[0]);
+            state0[1] = int(bird.pos[1]-(next.y[0]+next.y[1])/2+200);
+            state0[2] = int(bird.vy > 0);
+            action = qbird.nextAction(state0[0], state0[1], state0[2]);
             if (action == 1){
-                birdup.flap();
+                bird.flap();
                 cooldown = 20;
             }
             move();
-            state1[0] = int(next.x-birdup.pos[0]);
-            state1[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
+            state1[0] = int(next.x-bird.pos[0]);
+            state1[1] = int(bird.pos[1]-(next.y[0]+next.y[1])/2+200);
+            state0[2] = int(bird.vy > 0);
             if (birdDown()) reward = -1000; //idk what values would yield what best results 
             else reward = 15;
             qbird.learn(state0, state1, reward, action);
@@ -126,7 +127,9 @@ int main(){
 
     srand(time(0));
 
-    train(qbird);
+    QBird qbird = QBird(0.1, 0.4);
+
+    for (int n = 0; n < 100000; n++) train(qbird);
     
     RenderWindow window(VideoMode(250, 200), "Bird Up");
 
@@ -153,12 +156,13 @@ int main(){
 
         //agent does the flapping
         if (cooldown == 0){
-            Pole next = poles[nextPole];
-            int state0[2];
-            state0[0] = int(next.x-birdup.pos[0]);
-            state0[1] = int(birdup.pos[1]-(next.y[0]+next.y[1])/2+200);
-            if (qbird.nextAction(state0[0], state0[1], birdup.vy) == 1){
-                birdup.flap();
+            Pipe next = pipes[nextPipe];
+            int state0[3];
+            state0[0] = int(next.x-bird.pos[0]);
+            state0[1] = int(bird.pos[1]-(next.y[0]+next.y[1])/2+200);
+            state0[2] = int(bird.vy > 0);
+            if (qbird.nextAction(state0[0], state0[1], state0[2]) == 1){
+                bird.flap();
                 cooldown = 20;
             }
         }
@@ -171,6 +175,7 @@ int main(){
 
         move();
         if (birdDown()){
+            cout << "Score: " << score << "\n";
             reset();
         }
 
